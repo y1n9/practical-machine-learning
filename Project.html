@@ -150,8 +150,24 @@ DecisionTreeModel$finalModel</code></pre>
 ## Type rfNews() to see new features/changes/bug fixes.</code></pre>
 <pre class="r"><code>set.seed(95135)
 
-RandomForestModel &lt;- randomForest(classe~., data=crossTraining, ntree=150)</code></pre>
-<p><strong>Out-of Sample Accuracy</strong><br />The Random Forest model shows OOB estimate of error rate: 1.43% for the training data.<br /><strong>The predicted out-of sample accuracy on the test data has an estimated error rate is less than 1%.</strong></p>
+RandomForestModel &lt;- randomForest(classe~., data=crossTraining, ntree=150)
+RandomForestModel</code></pre>
+<pre><code>## 
+## Call:
+##  randomForest(formula = classe ~ ., data = crossTraining, ntree = 150) 
+##                Type of random forest: classification
+##                      Number of trees: 150
+## No. of variables tried at each split: 6
+## 
+##         OOB estimate of  error rate: 1.08%
+## Confusion matrix:
+##      A    B    C    D    E class.error
+## A 3901    4    0    0    1 0.001280082
+## B   24 2624    9    1    0 0.012791573
+## C    0   31 2362    3    0 0.014190317
+## D    0    0   56 2189    7 0.027975133
+## E    0    1    3    8 2513 0.004752475</code></pre>
+<p><strong>Out-of Sample Accuracy</strong><br />The Random Forest model shows OOB estimate of error rate: 1.08% for the training data.<br /><strong>The predicted out-of sample accuracy on the test data has an estimated error rate is less than 1%.</strong></p>
 </div>
 <div id="cross-validation" class="section level2">
 <h2>Cross-Validation</h2>
@@ -160,13 +176,13 @@ RandomForestModel &lt;- randomForest(classe~., data=crossTraining, ntree=150)</c
 predictor &lt;- with(crossTesting,table(dt.predictor, classe))
 sum(diag(predictor))/sum(as.vector(predictor))</code></pre>
 <pre><code>## [1] 0.4902294</code></pre>
-<p>Decision tree produced a poor model with an estimated error rate of 0.4911.</p>
+<p>Decision tree produced a poor model with an estimated error rate of 0.4902.</p>
 <p><strong>Random forest</strong><br />We calculate the error rate of our random forest predictor.</p>
 <pre class="r"><code>rf.predictor &lt;- predict(RandomForestModel,crossTesting,type=&quot;class&quot;)
 predictor &lt;- with(crossTesting,table(rf.predictor, classe))
 sum(diag(predictor))/sum(as.vector(predictor)) </code></pre>
 <pre><code>## [1] 0.9894647</code></pre>
-<p>Random forest produced a very accurate estimated error rate of 0.9898, which will be selected to be our final model.</p>
+<p>Random forest produced a very accurate estimated error rate of 0.989, which will be selected to be our final model.</p>
 </div>
 <div id="test-data-submission" class="section level2">
 <h2>Test Data Submission</h2>

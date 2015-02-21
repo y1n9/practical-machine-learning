@@ -91,10 +91,11 @@ library(randomForest)
 set.seed(95135)
 
 RandomForestModel <- randomForest(classe~., data=crossTraining, ntree=150)
+RandomForestModel
 ```
   
 **Out-of Sample Accuracy**  
-The Random Forest model shows OOB estimate of error rate: 1.43% for the training data.  
+The Random Forest model shows OOB estimate of error rate: 1.08% for the training data.  
 **The predicted out-of sample accuracy on the test data has an estimated error rate is less than 1%.**
   
 ## Cross-Validation  
@@ -105,7 +106,7 @@ dt.predictor <- predict(DecisionTreeModel,crossTesting)
 predictor <- with(crossTesting,table(dt.predictor, classe))
 sum(diag(predictor))/sum(as.vector(predictor))
 ```
-Decision tree produced a poor model with an estimated error rate of 0.4911.
+Decision tree produced a poor model with an estimated error rate of 0.4902.
   
 **Random forest**  
 We calculate the error rate of our random forest predictor.
@@ -114,7 +115,7 @@ rf.predictor <- predict(RandomForestModel,crossTesting,type="class")
 predictor <- with(crossTesting,table(rf.predictor, classe))
 sum(diag(predictor))/sum(as.vector(predictor)) 
 ```
-Random forest produced a very accurate estimated error rate of 0.9898, which will be selected to be our final model.  
+Random forest produced a very accurate estimated error rate of 0.989, which will be selected to be our final model.  
 
 ## Test Data Submission
 Make use of the pml_write_files function to output the predictions from the random forest model.
