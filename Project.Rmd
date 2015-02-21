@@ -1,0 +1,132 @@
+---
+title: 'Practical Machine Learning: Prediction Assignment Writeup'
+output: html_document
+---
+  
+### Machine Learning Problem
+Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement – a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. 
+
+In this project, your goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways. More information is available from the website here: http://groupware.les.inf.puc-rio.br/har.  
+
+The objective of this project is to go through the entire machine learning process to predict activity quality from activity monitors.
+  
+## Data  
+Load the Training and Testing data provided by Coursera.
+
+```{r}
+library(RCurl)
+Training <- read.csv(text = getURL("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv"))
+Testing <- read.csv(text = getURL("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv"))
+
+#Show the dimension of training data
+dim(Training)
+```
+  
+## Features
+**Data Preprocessing**  
+Data preprocessing is the first step we do to improve the results of our prediction. We conduct several pre-processing steps to remove predictors that do not contribute well to our predictions.
+  
+**Remove all features that are highly correlated to each other**
+```{r}
+library(caret)
+#Calculate correlation for numeric features
+correlation <- cor(na.omit(Training[sapply(Training, is.numeric)]))
+#We choose to set the cutoff for our correlation to be .90
+remove <- findCorrelation(correlation, cutoff = .90, verbose = FALSE)
+Training <- Training[ ,-remove ]
+
+#Show the dimension of training data
+dim(Training)
+```
+This preprocessing process has reduced the total number of features to 126.  
+  
+**Remove features that are mostly NA**
+```{r}
+haveNA <- sapply(Training, function (x) any(is.na(x) | x == ""))
+#To remove variables like "kurtosis_roll_belt, skewness_yaw_arm e.g." that are mostly empty
+isPredictor <- !haveNA & grepl("dumbbell|belt|[^(fore)]arm|forearm", names(haveNA))
+predVariables <- names(haveNA)[isPredictor]
+#Include the "classe" feature that is required as our predictor
+Training <- Training[, c("classe", predVariables)]
+
+#Show the dimension of training data
+dim(Training)
+```
+This preprocessing process has reduced the total number of features to 42.  
+  
+**Use the nearZeroVar() function to remove predictors that have extremely low variance**
+```{r}
+lowVar <- nearZeroVar(Training[sapply(Training, is.numeric)], saveMetrics = TRUE)
+Training <- Training[,lowVar[, 'nzv']==0]
+
+#Show the dimension of training data
+dim(Training)
+```
+This preprocessing process did not manage to reduce the total number of features.  
+  
+**Group the data into 70% training and 30% testing for cross validation.**
+```{r}
+inTrain <- createDataPartition(y=Training$classe, p=0.7, list=FALSE)
+crossTraining <- Training[inTrain,]
+crossTesting <- Training[-inTrain,]
+
+#Show the dimension of training and testing data after splitting
+dim(crossTraining)
+dim(crossTesting)
+```
+  
+## Algorithm
+We build 2 machine learning algorithms models. The first is decision tree, and the second is the random forest algorithm. The out of sample error will be estimated using the 30% training sample. **We expect a small out of sample error, estimated to be less than 3%.**  
+
+**Decision Tree**
+```{r}
+library(rpart)
+DecisionTreeModel <- train(classe ~ ., method="rpart", data=crossTraining)
+DecisionTreeModel$finalModel
+```
+  
+**Random forest**
+```{r}
+library(randomForest)
+set.seed(95135)
+
+RandomForestModel <- randomForest(classe~., data=crossTraining, ntree=150)
+```
+  
+**Out-of Sample Accuracy**  
+The Random Forest model shows OOB estimate of error rate: 1.43% for the training data.  
+**The predicted out-of sample accuracy on the test data has an estimated error rate is less than 1%.**
+  
+## Cross-Validation  
+**Decision Tree**  
+We calculate the error rate of our decision tree predictor.
+```{r}
+dt.predictor <- predict(DecisionTreeModel,crossTesting)
+predictor <- with(crossTesting,table(dt.predictor, classe))
+sum(diag(predictor))/sum(as.vector(predictor))
+```
+Decision tree produced a poor model with an estimated error rate of 0.4911.
+  
+**Random forest**  
+We calculate the error rate of our random forest predictor.
+```{r}
+rf.predictor <- predict(RandomForestModel,crossTesting,type="class")
+predictor <- with(crossTesting,table(rf.predictor, classe))
+sum(diag(predictor))/sum(as.vector(predictor)) 
+```
+Random forest produced a very accurate estimated error rate of 0.9898, which will be selected to be our final model.  
+
+## Test Data Submission
+Make use of the pml_write_files function to output the predictions from the random forest model.
+```{r}
+pml_write_files = function(x){
+  n = length(x)
+  for(i in 1:n){
+    filename = paste0("problem_id_",i,".txt")
+    write.table(x[i],file=filename,quote=FALSE,row.names=FALSE,col.names=FALSE)
+  }
+}
+
+pml_write_files(predict(RandomForestModel, Testing))
+
+```
