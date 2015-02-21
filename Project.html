@@ -143,24 +143,40 @@ DecisionTreeModel$finalModel</code></pre>
 ##       * denotes terminal node
 ## 
 ##  1) root 13737 9831 A (0.28 0.19 0.17 0.16 0.18)  
-##    2) pitch_forearm&lt; -26.45 1239   52 A (0.96 0.042 0 0 0) *
-##    3) pitch_forearm&gt;=-26.45 12498 9779 A (0.22 0.21 0.19 0.18 0.2)  
-##      6) accel_belt_z&gt;=-187.5 11766 9051 A (0.23 0.22 0.2 0.19 0.15)  
-##       12) magnet_dumbbell_y&lt; 426.5 9711 7081 A (0.27 0.17 0.24 0.19 0.13)  
-##         24) roll_forearm&lt; 123.5 6077 3710 A (0.39 0.18 0.18 0.16 0.096) *
-##         25) roll_forearm&gt;=123.5 3634 2397 C (0.072 0.17 0.34 0.23 0.19)  
-##           50) accel_forearm_x&gt;=-109.5 2586 1588 C (0.08 0.2 0.39 0.11 0.23) *
-##           51) accel_forearm_x&lt; -109.5 1048  490 D (0.054 0.086 0.23 0.53 0.099) *
-##       13) magnet_dumbbell_y&gt;=426.5 2055 1126 B (0.041 0.45 0.042 0.21 0.26) *
-##      7) accel_belt_z&lt; -187.5 732    5 E (0.0055 0.0014 0 0 0.99) *</code></pre>
+##    2) pitch_forearm&lt; -26.65 1243   54 A (0.96 0.043 0 0 0) *
+##    3) pitch_forearm&gt;=-26.65 12494 9777 A (0.22 0.21 0.19 0.18 0.2)  
+##      6) accel_belt_z&gt;=-185.5 11732 9037 A (0.23 0.22 0.2 0.19 0.15)  
+##       12) magnet_dumbbell_y&lt; 437.5 9806 7167 A (0.27 0.18 0.24 0.19 0.13)  
+##         24) roll_forearm&lt; 123.5 6153 3777 A (0.39 0.18 0.18 0.17 0.096) *
+##         25) roll_forearm&gt;=123.5 3653 2417 C (0.072 0.18 0.34 0.22 0.19)  
+##           50) magnet_dumbbell_y&lt; 292.5 2212 1142 C (0.087 0.14 0.48 0.14 0.15) *
+##           51) magnet_dumbbell_y&gt;=292.5 1441  931 D (0.049 0.24 0.12 0.35 0.25) *
+##       13) magnet_dumbbell_y&gt;=437.5 1926 1046 B (0.029 0.46 0.038 0.21 0.26) *
+##      7) accel_belt_z&lt; -185.5 762   23 E (0.029 0.0013 0 0 0.97) *</code></pre>
 <p><strong>Random forest</strong></p>
 <pre class="r"><code>library(randomForest)</code></pre>
 <pre><code>## randomForest 4.6-10
 ## Type rfNews() to see new features/changes/bug fixes.</code></pre>
 <pre class="r"><code>set.seed(95135)
 
-RandomForestModel &lt;- randomForest(classe~., data=crossTraining, ntree=150)</code></pre>
-<p><strong>Out-of Sample Accuracy</strong><br />The Random Forest model shows OOB estimate of error rate: 1.43% for the training data.<br /><strong>The predicted out-of sample accuracy on the test data has an estimated error rate is less than 1%.</strong></p>
+RandomForestModel &lt;- randomForest(classe~., data=crossTraining, ntree=150)
+RandomForestModel</code></pre>
+<pre><code>## 
+## Call:
+##  randomForest(formula = classe ~ ., data = crossTraining, ntree = 150) 
+##                Type of random forest: classification
+##                      Number of trees: 150
+## No. of variables tried at each split: 6
+## 
+##         OOB estimate of  error rate: 1.03%
+## Confusion matrix:
+##      A    B    C    D    E class.error
+## A 3899    5    2    0    0 0.001792115
+## B   24 2625    9    0    0 0.012415350
+## C    0   26 2366    4    0 0.012520868
+## D    1    1   52 2192    6 0.026642984
+## E    0    3    3    6 2513 0.004752475</code></pre>
+<p><strong>Out-of Sample Accuracy</strong><br />The Random Forest model shows OOB estimate of error rate: 1.08% for the training data.<br /><strong>The predicted out-of sample accuracy on the test data has an estimated error rate is less than 1%.</strong></p>
 </div>
 <div id="cross-validation" class="section level2">
 <h2>Cross-Validation</h2>
@@ -168,14 +184,14 @@ RandomForestModel &lt;- randomForest(classe~., data=crossTraining, ntree=150)</c
 <pre class="r"><code>dt.predictor &lt;- predict(DecisionTreeModel,crossTesting)
 predictor &lt;- with(crossTesting,table(dt.predictor, classe))
 sum(diag(predictor))/sum(as.vector(predictor))</code></pre>
-<pre><code>## [1] 0.4783347</code></pre>
-<p>Decision tree produced a poor model with an estimated error rate of 0.4911.</p>
+<pre><code>## [1] 0.4881903</code></pre>
+<p>Decision tree produced a poor model with an estimated error rate of 0.4902.</p>
 <p><strong>Random forest</strong><br />We calculate the error rate of our random forest predictor.</p>
 <pre class="r"><code>rf.predictor &lt;- predict(RandomForestModel,crossTesting,type=&quot;class&quot;)
 predictor &lt;- with(crossTesting,table(rf.predictor, classe))
 sum(diag(predictor))/sum(as.vector(predictor)) </code></pre>
-<pre><code>## [1] 0.9906542</code></pre>
-<p>Random forest produced a very accurate estimated error rate of 0.9898, which will be selected to be our final model.</p>
+<pre><code>## [1] 0.9869159</code></pre>
+<p>Random forest produced a very accurate estimated error rate of 0.989, which will be selected to be our final model.</p>
 </div>
 <div id="test-data-submission" class="section level2">
 <h2>Test Data Submission</h2>
